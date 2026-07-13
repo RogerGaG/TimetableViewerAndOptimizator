@@ -1,52 +1,125 @@
-﻿# Timetable Viewer and Optimizator
+# Timetable Viewer and Optimizator
 
-Timetable Viewer and Optimizator is a web application for building, visualizing and optimizing university timetables. It can start from a prepared FIB UPC 2026 Q2 catalog or from a fully custom catalog created by the user.
+**Timetable Viewer and Optimizator** is a web application for viewing, customizing and optimizing university timetables.
 
-The project is designed as a complete browser-based timetable planning tool: users can select subjects, choose class groups, customize visible days and colors, import/export simplified catalogs, and generate optimized timetable proposals according to their own preferences.
 
-## Live Demo
+The app can start from a prepared **FIB 2026 Q2** course catalog or from a fully custom timetable created by the user. It is designed to help students compare class combinations, detect scheduling conflicts, and generate optimized timetable proposals based on personal preferences.
 
-A deployment URL can be added here after publishing the project.
+## What You Can Do
 
-## Main Features
+- View available FIB subjects and class groups.
+- Select subjects and groups manually and see the weekly timetable update immediately.
+- Create a custom subject catalog with your own subjects, groups and class times.
+- Add, delete, import and export subjects and classes through simplified JSON files.
+- Choose which weekdays appear in the timetable.
+- Customize colors for theory, lab, problem and other class types.
+- Run timetable optimization algorithms and compare the best proposed schedules.
 
-- **Timetable mode selector**: choose between the prepared `FIB 2026 Q2` catalog and a custom timetable catalog.
-- **Manual timetable viewer**: select subjects and class groups and see the resulting weekly timetable immediately.
-- **Custom subject editor**: create subjects, class groups, weekly sessions and extra notes manually.
-- **Import/export support**: download or load simplified JSON files containing subjects, classes and extra information.
-- **Configurable visible days**: choose which weekdays appear in the timetable, from Monday to Sunday.
-- **Class color settings**: customize colors for theory, lab, problem and other session types.
-- **Optimization mode**: search for timetable proposals using selected courses and user-defined preferences.
-- **Multiple algorithms**: random search, hill climbing, simulated annealing, genetic algorithm, branch and bound, and constraint search.
+## How to Use the App
+
+### 1. Choose a Starting Mode
+
+When entering the app, choose one of the two starting modes:
+
+- **FIB 2026 Q2**: starts from the prepared FIB course catalog.
+- **Customize Timetable**: starts from an empty/custom catalog where you can add subjects and classes manually.
+
+You can return to the mode selector from the top navigation.
+
+### 2. Manual Timetable
+
+In **Manual Timetable**, you can:
+
+- Move subjects from the available list into your selected subjects.
+- Choose theory, lab and problem groups for each subject.
+- See the weekly timetable generated from the selected classes.
+- Change visible days and class colors from the right-side settings panel.
+- Add or delete extra subjects and classes.
+- Import or export the current subject/class catalog as JSON.
+
+This mode is useful when you already know which subjects you want and want to inspect possible class combinations manually.
+
+### 3. Customize Subjects
+
+If you choose **Customize Timetable**, you can build a catalog manually:
+
+- Add a subject code and name.
+- Add class groups with type, day, start time and end time.
+- Add extra information notes.
+- Import a previously exported JSON catalog.
+
+After creating the subjects/classes, use **Go to Manual Timetable** to select them and view the timetable.
+
+### 4. Timetable Optimizator
+
+In **Timetable Optimizator**, select the subjects that the optimizer can use, then configure restrictions and preferences.
+
+For each selected subject, you can configure:
+
+- Course importance from `0` to `10`.
+- Whether to attend theory, lab/problems, or both.
+- Whether theory and lab/problem group families should match.
+- Optional individual importance for each class group.
+
+General optimization settings include:
+
+- Number of courses to take.
+- Number of recommended solutions to show.
+- Gap preference: avoid gaps, prefer gaps or no preference.
+- Free days preference.
+- Preferred time of day.
+- Hour-by-hour importance.
+- Scoring weights for overlaps, group matching, free days, time of day and hourly slots.
+- Whether best options must use different subject sets.
+- Maximum number of combinations/evaluations.
+- Optimization algorithm.
 
 ## Optimization Criteria
 
-The optimizer starts from the selected courses and tries to find combinations of theory and lab/problem groups that produce the best timetable. Scores are shown out of 100.
+The optimizer scores each timetable out of `100`.
 
-The base score rewards choosing the most important courses. If individual class importance is enabled for a course, the selected groups also affect that base score.
+The base score rewards selecting the most important subjects. If individual class importance is enabled, the chosen class groups also affect this base score.
 
-Soft scoring factors can include:
+The final score can then be reduced by soft penalties such as:
 
-- class overlaps
-- matching theory and lab/problem group families
-- individual class preferences
-- free days
-- morning or afternoon preference
-- importance by hourly time slot
-- free time between classes, through the selected gap preference and importance
+- Class overlaps.
+- Non-matching theory/lab group families.
+- Lower-priority individual classes.
+- Too many or too few free days.
+- Classes outside the preferred time of day.
+- Classes in lower-priority hourly slots.
+- Free time between classes, depending on the selected gap preference.
 
-Some preferences can become hard restrictions. When a hard restriction is active, invalid timetables are discarded instead of being scored. Examples include:
+Some preferences become hard restrictions when set to their maximum importance. Invalid timetables are discarded instead of scored. Examples include:
 
-- class overlaps when overlap importance is maximum
-- exact course count
-- exact free-day count when that mode is selected
-- no gaps or required gaps when gap importance is maximum
-- morning-only or afternoon-only timetables when time preference importance is maximum
-- forbidden hourly slots with importance `0`
-- class groups with individual importance `0`
-- required matching group families
+- Class overlaps when overlap importance is `10`.
+- Forbidden hourly slots with importance `0`.
+- Individual class groups with importance `0`.
+- Morning-only or afternoon-only preference with importance `10`.
+- No gaps or required gaps with gap importance `10`.
+- Exact free-day requirements.
+- Required matching group families.
 
-The option **Only different subjects best options** controls whether the best results must use different sets of subjects. When enabled, only the best timetable for each subject set is kept; when disabled, multiple group/time variations for the same subjects can appear.
+## Optimization Algorithms
+
+The app includes several search strategies:
+
+- Random search.
+- Hill climbing.
+- Simulated annealing.
+- Genetic algorithm.
+- Branch and bound.
+- Constraint search.
+
+All algorithms use the same scoring model. Hard restrictions are used to discard invalid timetable candidates early when possible.
+
+## Data and Persistence
+
+The default FIB catalog is bundled with the project as JSON data. The app does not need an external API at runtime.
+
+User changes are saved in the browser. When running with the Node.js server, the app can also write user catalog edits to `data/user/catalog-edits.json`.
+
+On free hosting platforms such as Render, server-side files created at runtime can be temporary. For long-term backup of custom data, use the app's JSON export/import feature.
 
 ## Project Structure
 
@@ -61,23 +134,23 @@ timetable-viewer-and-optimizator/
     app.js               # main frontend controller
     catalog.json         # static copy of the processed catalog
     optimizer/
-      problem.js         # optimizer model, options, hard restrictions and scoring
+      problem.js         # optimizer model, valid options, scoring and hard restrictions
       engine.js          # shared progressive optimization runner
       algorithms/        # optimization algorithms
   scripts/
     prepare_data.py      # converts raw data into the processed catalog
   server.js              # Node.js static server and JSON endpoints
-  render.yaml            # optional Render deployment configuration
+  render.yaml            # Render deployment configuration
 ```
 
-## Requirements
+## For Developers
 
-- Node.js 18 or newer
-- Python 3, only needed when regenerating the catalog from `data/raw`
+Requirements:
 
-The app does not require a database or external API at runtime.
+- Node.js 18 or newer.
+- Python 3 only if regenerating the catalog from `data/raw`.
 
-## Run Locally
+Run locally:
 
 ```bash
 npm install
@@ -90,32 +163,28 @@ Then open:
 http://localhost:3000
 ```
 
-If the raw catalog files change, regenerate the processed catalog:
+Regenerate the processed catalog after changing raw data:
 
 ```bash
 npm run prepare-data
 ```
 
-## Validation
-
-Run the JavaScript syntax checks:
+Run syntax checks:
 
 ```bash
 npm run check
 ```
 
-## Data and Persistence Notes
-
-The default FIB catalog is stored in the repository as JSON. User edits are saved in the browser and, when the Node server is running, also written to `data/user/catalog-edits.json`.
-
-`data/user/` is intentionally ignored by Git because it contains runtime-generated local user data. On free hosting platforms with ephemeral storage, server-side saved edits may be lost after a restart. Imported/exported JSON files are the recommended portable way to preserve custom catalogs.
-
 ## Deployment
 
-The project can be deployed as a Node.js web service. Render is a good first option because it can connect directly to GitHub and run `npm start`.
+The project is deployed on Render as a Node.js web service.
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for the recommended deployment steps.
+Useful deployment settings:
 
-## Status
+```text
+Build command: npm install
+Start command: npm start
+Health check path: /health
+```
 
-This is a portfolio-ready timetable planning project with a working frontend, local/custom catalog support, a Node.js server, data preprocessing, and several optimization strategies.
+More details are available in [DEPLOYMENT.md](DEPLOYMENT.md).
