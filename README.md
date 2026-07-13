@@ -169,22 +169,9 @@ Regenerate the processed catalog after changing raw data:
 npm run prepare-data
 ```
 
-Run syntax checks:
+## Web Page
 
-```bash
-npm run check
-```
+Link to website in [Web Link](https://timetableviewerandoptimizator.onrender.com).
 
-## Deployment
+Can also access it through https://timetableviewerandoptimizator.onrender.com 
 
-The project is deployed on Render as a Node.js web service.
-
-Useful deployment settings:
-
-```text
-Build command: npm install
-Start command: npm start
-Health check path: /health
-```
-
-More details are available in [DEPLOYMENT.md](DEPLOYMENT.md).
