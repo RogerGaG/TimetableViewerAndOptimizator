@@ -1,0 +1,14 @@
+﻿{
+  "name": "timetable-viewer-and-optimizator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Web application to view, customize and optimize university timetables.",
+  "scripts": {
+    "start": "node server.js",
+    "prepare-data": "python scripts/prepare_data.py",
+    "check": "node --check server.js && node --check public/app.js && node --check public/optimizer/problem.js && node --check public/optimizer/engine.js && node --check public/optimizer/algorithms/index.js && node --check public/optimizer/algorithms/random-search.js && node --check public/optimizer/algorithms/hill-climbing.js && node --check public/optimizer/algorithms/simulated-annealing.js && node --check public/optimizer/algorithms/genetic-algorithm.js && node --check public/optimizer/algorithms/branch-and-bound.js && node --check public/optimizer/algorithms/constraint-search.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

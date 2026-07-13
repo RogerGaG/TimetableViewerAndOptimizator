@@ -1,0 +1,533 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timetable Viewer and Optimizator</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-and-navigation">
+      <h1>Timetable Viewer and Optimizator</h1>
+      <nav class="main-navigation" aria-label="Main navigation" hidden>
+        <button class="nav-button active" data-view="manual">Manual Timetable</button>
+        <button class="nav-button" data-view="optimization">Timetable Optimizator</button>
+      </nav>
+    </div>
+    <div class="topbar-actions" hidden>
+      <button id="returnModeSelectorBtn" class="ghost-button" type="button">Timetable Mode Selector</button>
+      <button id="clearSelectionBtn" class="ghost-button" type="button">Clear selection</button>
+    </div>
+  </header>
+
+  <main id="modeView" class="page mode-view">
+    <section class="mode-choice-panel">
+      <div class="mode-selector-heading">
+        <span>Timetable Mode Selector</span>
+        <h2>Choose starting timetable mode to view and optimize</h2>
+        <p>Start from:</p>
+      </div>
+      <div class="mode-choice-grid" aria-label="Timetable source">
+        <button class="mode-choice-card" data-mode="fib" type="button">
+          <strong>FIB 2026 Q2</strong>
+          <span>Use the loaded FIB catalog.</span>
+        </button>
+        <button class="mode-choice-card" data-mode="custom" type="button">
+          <strong>Customize Timetable</strong>
+          <span>Create subjects, groups and class times.</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <main id="manualView" class="page app-view" hidden>
+
+
+    <section class="manual-workspace">
+      <section class="courses-and-timetable">
+        <section class="courses-panel panel">
+          <div class="panel-heading compact">
+            <div>
+              <h2>Courses</h2>
+              <p class="hint">Move courses to the right, then choose the classes you want.</p>
+            </div>
+          </div>
+
+          <div class="catalog-tools-grid">
+            <section class="catalog-tool-card">
+              <h3>Export Subjects and Classes</h3>
+              <p class="hint small">Download the currently available subjects, classes and notes as a simplified JSON file.</p>
+              <button id="exportCatalogBtn" class="primary-button" type="button">Export Subjects and Classes</button>
+            </section>
+
+            <section class="catalog-tool-card">
+              <h3>Import Subjects and Classes</h3>
+              <p class="hint small">Load a simplified JSON file and choose how it should affect the current subjects.</p>
+              <div id="manualImportOptions" class="import-options">
+                <label><input type="radio" name="manualImportMode" value="combine" checked /> Combine available subjects and classes</label>
+                <label><input type="radio" name="manualImportMode" value="replace" /> Set file as new subjects and classes</label>
+              </div>
+              <label class="file-import-button">
+                <span>Import Subjects and Classes</span>
+                <input id="manualImportCatalogInput" type="file" accept="application/json,.json" />
+              </label>
+            </section>
+          </div>
+
+          <div class="courses-layout">
+            <div class="course-box available-box">
+              <div class="box-header">
+                <h3>Courses with available classes</h3>
+              </div>
+              <div id="availableCoursesList" class="course-box-list"></div>
+            </div>
+
+            <div class="course-box selected-box">
+              <div class="box-header">
+                <h3>Selected courses</h3>
+                <p class="hint small">Order follows selection order.</p>
+              </div>
+              <div id="selectedCoursesList" class="selected-courses-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="timetable-panel panel">
+          <div class="panel-heading compact">
+            <div>
+              <h2>Weekly timetable</h2>
+              <p id="timetableHint" class="hint">08:00-20:00, shown in 1-hour slots.</p>
+            </div>
+          </div>
+          <div id="timetableWrapper" class="timetable-wrapper"></div>
+
+          <section class="extra-under-timetable">
+            <div class="panel-heading compact extra-heading">
+              <div>
+                <h2>Extra information</h2>
+                <p class="hint">Comments and special notes for the currently selected courses.</p>
+              </div>
+            </div>
+            <div id="extraInfoBox" class="extra-info-box"></div>
+          </section>
+          <section id="manualCustomBuilderPanel" class="custom-builder-panel">
+            <div class="panel-heading compact extra-heading">
+              <div>
+                <h2>Add subjects or classes</h2>
+                <p class="hint">Add extra subjects, class sessions and notes to the active timetable catalog.</p>
+              </div>
+            </div>
+            <div class="custom-builder-grid">
+              <form id="manualCustomCourseForm" class="custom-form compact-custom-form">
+                <h3>Add subject</h3>
+                <label>
+                  <span>Code</span>
+                  <input id="manualCustomCourseCode" type="text" placeholder="MATH101" />
+                </label>
+                <label>
+                  <span>Name</span>
+                  <input id="manualCustomCourseName" type="text" placeholder="Subject name" />
+                </label>
+                <button class="primary-button" type="submit">Add subject</button>
+              </form>
+
+              <form id="manualCustomClassForm" class="custom-form">
+                <h3>Add class</h3>
+                <label>
+                  <span>Subject</span>
+                  <select id="manualCustomClassCourse"></select>
+                </label>
+                <label>
+                  <span>Group</span>
+                  <input id="manualCustomClassGroup" type="number" min="1" step="1" placeholder="1" />
+                </label>
+                <label>
+                  <span>Type</span>
+                  <select id="manualCustomClassType">
+                    <option value="T">Theory</option>
+                    <option value="L">Lab</option>
+                    <option value="P">Problem</option>
+                    <option value="O">Other</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Day</span>
+                  <select id="manualCustomClassDay"></select>
+                </label>
+                <label>
+                  <span>Start</span>
+                  <input id="manualCustomClassStart" type="time" value="08:00" step="3600" />
+                </label>
+                <label>
+                  <span>End</span>
+                  <input id="manualCustomClassEnd" type="time" value="10:00" step="3600" />
+                </label>
+                <button class="primary-button" type="submit">Add class</button>
+              </form>
+            </div>
+
+            <form id="manualExtraInfoForm" class="custom-form extra-info-form">
+              <h3>Add Extra Information</h3>
+              <label>
+                <span>Subject</span>
+                <select id="manualExtraInfoCourse"></select>
+              </label>
+              <label>
+                <span>Information</span>
+                <textarea id="manualExtraInfoText" rows="3" placeholder="Write a note for this subject"></textarea>
+              </label>
+              <button class="primary-button" type="submit">Add Extra Information</button>
+            </form>
+
+            <section class="catalog-delete-panel">
+              <div class="panel-heading compact extra-heading">
+                <div>
+                  <h3>Delete subjects or classes</h3>
+                  <p class="hint">Remove entries from the active timetable catalog.</p>
+                </div>
+              </div>
+              <div class="delete-grid">
+                <form id="manualDeleteCourseForm" class="custom-form compact-custom-form">
+                  <h3>Delete subject</h3>
+                  <label>
+                    <span>Subject</span>
+                    <select id="manualDeleteCourse"></select>
+                  </label>
+                  <button class="ghost-button danger-button" type="submit">Delete subject</button>
+                </form>
+                <form id="manualDeleteClassForm" class="custom-form compact-custom-form">
+                  <h3>Delete class</h3>
+                  <label>
+                    <span>Class</span>
+                    <select id="manualDeleteClass"></select>
+                  </label>
+                  <button class="ghost-button danger-button" type="submit">Delete class</button>
+                </form>
+              </div>
+            </section>
+          </section>
+
+        </section>
+      </section>
+
+
+    </section>
+  </main>
+  <main id="customizeView" class="page app-view" hidden>
+    <section class="panel customize-subjects-panel">
+      <div class="panel-heading compact customize-heading">
+        <div>
+          <h2>Customize Subjects</h2>
+          <p class="hint">Create the subjects and class sessions that you want to use in the timetable.</p>
+        </div>
+        <button id="goToManualFromCustomizeBtn" class="primary-button" type="button">Go to Manual Timetable</button>
+      </div>
+      <section class="catalog-file-panel customize-import-panel">
+        <div class="catalog-file-actions">
+          <label class="file-import-button">
+            <span>Import Subjects and Classes</span>
+            <input id="customImportCatalogInput" type="file" accept="application/json,.json" />
+          </label>
+        </div>
+        <div id="customImportOptions" class="import-options">
+          <span>Import mode</span>
+          <label><input type="radio" name="customImportMode" value="combine" checked /> Combine available subjects and classes</label>
+          <label><input type="radio" name="customImportMode" value="replace" /> Set file as new subjects and classes</label>
+        </div>
+      </section>
+
+      <div class="custom-builder-grid">
+        <form id="customCourseForm" class="custom-form compact-custom-form">
+          <h3>Add subject</h3>
+          <label>
+            <span>Code</span>
+            <input id="customCourseCode" type="text" placeholder="MATH101" />
+          </label>
+          <label>
+            <span>Name</span>
+            <input id="customCourseName" type="text" placeholder="Subject name" />
+          </label>
+          <button class="primary-button" type="submit">Add subject</button>
+        </form>
+
+        <form id="customClassForm" class="custom-form">
+          <h3>Add class</h3>
+          <label>
+            <span>Subject</span>
+            <select id="customClassCourse"></select>
+          </label>
+          <label>
+            <span>Group</span>
+            <input id="customClassGroup" type="number" min="1" step="1" placeholder="1" />
+          </label>
+          <label>
+            <span>Type</span>
+            <select id="customClassType">
+              <option value="T">Theory</option>
+              <option value="L">Lab</option>
+              <option value="P">Problem</option>
+              <option value="O">Other</option>
+            </select>
+          </label>
+          <label>
+            <span>Day</span>
+            <select id="customClassDay"></select>
+          </label>
+          <label>
+            <span>Start</span>
+            <input id="customClassStart" type="time" value="08:00" step="3600" />
+          </label>
+          <label>
+            <span>End</span>
+            <input id="customClassEnd" type="time" value="10:00" step="3600" />
+          </label>
+          <button class="primary-button" type="submit">Add class</button>
+        </form>
+      </div>
+      <form id="customExtraInfoForm" class="custom-form extra-info-form">
+        <h3>Add Extra Information</h3>
+        <label>
+          <span>Subject</span>
+          <select id="customExtraInfoCourse"></select>
+        </label>
+        <label>
+          <span>Information</span>
+          <textarea id="customExtraInfoText" rows="3" placeholder="Write a note for this subject"></textarea>
+        </label>
+        <button class="primary-button" type="submit">Add Extra Information</button>
+      </form>
+
+      <section class="catalog-delete-panel">
+        <div class="panel-heading compact extra-heading">
+          <div>
+            <h3>Delete subjects or classes</h3>
+            <p class="hint">Remove entries from the custom timetable catalog.</p>
+          </div>
+        </div>
+        <div class="delete-grid">
+          <form id="customDeleteCourseForm" class="custom-form compact-custom-form">
+            <h3>Delete subject</h3>
+            <label>
+              <span>Subject</span>
+              <select id="customDeleteCourse"></select>
+            </label>
+            <button class="ghost-button danger-button" type="submit">Delete subject</button>
+          </form>
+          <form id="customDeleteClassForm" class="custom-form compact-custom-form">
+            <h3>Delete class</h3>
+            <label>
+              <span>Class</span>
+              <select id="customDeleteClass"></select>
+            </label>
+            <button class="ghost-button danger-button" type="submit">Delete class</button>
+          </form>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <main id="optimizationView" class="page app-view" hidden>
+    <section class="panel optimization-intro">
+      <div>
+        <h2>Timetable Optimizator</h2>
+        <p class="hint">Choose courses and save the preferences that the future optimization algorithm will use.</p>
+      </div>
+      <div class="save-area">
+        <span id="optimizationSaveStatus" class="save-status">Preferences are saved automatically.</span>
+        <button id="saveOptimizationBtn" class="primary-button">Save preferences</button>
+      </div>
+    </section>
+
+    <section class="optimization-course-layout">
+      <aside class="panel optimization-picker">
+        <div class="panel-heading compact">
+          <h2>Courses with available classes</h2>
+          <p class="hint">Only courses with selectable classes are shown.</p>
+        </div>
+        <input id="optimizationCourseSearchInput" type="text" placeholder="Search by code..." />
+        <div id="optimizationAvailableCourses" class="optimization-course-list"></div>
+      </aside>
+
+      <section class="panel optimization-selected-panel">
+        <div class="panel-heading compact">
+          <h2>Selected courses and preferences</h2>
+          <p class="hint">Course and individual class importance default to 10. A class set to 0 is excluded from optimization.</p>
+        </div>
+        <div id="optimizationSelectedCourses" class="optimization-selected-list"></div>
+      </section>
+    </section>
+
+    <section class="panel global-constraints-panel">
+      <div class="panel-heading compact">
+        <h2>General restrictions</h2>
+        <p class="hint">Configure the search target, hard restrictions and scoring preferences.</p>
+      </div>
+
+      <div class="constraint-grid">
+        <label class="field-card">
+          <span>Number of courses to take</span>
+          <input id="desiredCourseCount" type="number" min="1" step="1" value="5" />
+        </label>
+
+        <label class="field-card">
+          <span>Recommended solutions (1-10)</span>
+          <input id="recommendedSolutionCount" type="number" min="1" max="10" step="1" value="1" />
+        </label>
+
+        <label class="field-card">
+          <span>Free time between classes</span>
+          <select id="gapPreference">
+            <option value="avoid">Avoid gaps</option>
+            <option value="neutral">No preference</option>
+            <option value="prefer">Prefer gaps</option>
+          </select>
+        </label>
+
+        <label class="field-card">
+          <span>Free time importance (0-10)</span>
+          <input id="gapImportance" type="number" min="0" max="10" step="1" value="5" />
+        </label>
+
+        <label class="field-card">
+          <span>Free days preference</span>
+          <select id="freeDaysMode">
+            <option value="exact">Exact number</option>
+            <option value="maximize">Maximize free days</option>
+            <option value="minimize">Minimize free days</option>
+            <option value="neutral">No preference</option>
+          </select>
+        </label>
+
+        <label id="exactFreeDaysField" class="field-card">
+          <span>Desired free days</span>
+          <input id="exactFreeDays" type="number" min="0" max="4" step="1" value="0" />
+        </label>
+
+        <label class="field-card">
+          <span>Preferred time of day</span>
+          <select id="timeOfDayPreference">
+            <option value="neutral">No preference</option>
+            <option value="morning">Morning classes</option>
+            <option value="afternoon">Afternoon classes</option>
+          </select>
+        </label>
+
+        <label class="field-card">
+          <span>Time preference importance (0-10)</span>
+          <input id="timeOfDayImportance" type="number" min="0" max="10" step="1" value="10" />
+        </label>
+
+        <label class="field-card optimizer-toggle-field">
+          <span class="optimizer-toggle-copy">Only different subjects best options</span>
+          <input id="onlyDifferentSubjectsBestOptions" type="checkbox" checked />
+          <span class="optimizer-toggle-switch" aria-hidden="true"></span>
+        </label>
+      </div>
+
+      <section class="hourly-importance-section">
+        <div class="panel-heading compact">
+          <h3>Importance by time slot</h3>
+          <p class="hint">Set each hour from 0 to 10. All time slots start at 10.</p>
+        </div>
+        <div id="hourlyImportanceGrid" class="hourly-importance-grid"></div>
+      </section>
+
+      <section class="scoring-settings-section">
+        <div class="panel-heading compact">
+          <h3>Scoring weights</h3>
+          <p class="hint">Set each soft condition from 0 to 10. A value of 10 means the condition matters a lot.</p>
+        </div>
+
+        <div class="scoring-settings-grid">
+          <label class="scoring-weight-field">
+            <span>Avoid class overlaps</span>
+            <input id="weightOverlaps" type="number" min="0" max="10" step="1" />
+          </label>
+          <label class="scoring-weight-field">
+            <span>Matching group families</span>
+            <input id="weightMatchingGroups" type="number" min="0" max="10" step="1" />
+          </label>
+          <label class="scoring-weight-field">
+            <span>Individual class preferences</span>
+            <input id="weightIndividualClasses" type="number" min="0" max="10" step="1" />
+          </label>
+          <label class="scoring-weight-field">
+            <span>Free days</span>
+            <input id="weightFreeDays" type="number" min="0" max="10" step="1" />
+          </label>
+          <label class="scoring-weight-field">
+            <span>Morning/afternoon preference</span>
+            <input id="weightTimeOfDay" type="number" min="0" max="10" step="1" />
+          </label>
+          <label class="scoring-weight-field">
+            <span>Importance by time slot</span>
+            <input id="weightHourlySlots" type="number" min="0" max="10" step="1" />
+          </label>
+        </div>
+      </section>
+
+      <section class="search-settings-section">
+        <div class="panel-heading compact">
+          <h3>Search settings</h3>
+          <p class="hint">Choose how far to search. There is no fixed upper cap, but larger values may take considerably longer.</p>
+        </div>
+        <div class="search-settings-grid">
+          <label class="field-card">
+            <span>Optimization algorithm</span>
+            <select id="optimizationAlgorithm">
+              <option value="random">Random search</option>
+              <option value="hillClimbing">Hill climbing</option>
+              <option value="simulatedAnnealing">Simulated annealing</option>
+              <option value="genetic">Genetic algorithm</option>
+              <option value="branchAndBound">Branch and bound (exact if completed)</option>
+              <option value="constraintSearch">Constraint search (hard restrictions)</option>
+            </select>
+          </label>
+          <label class="field-card">
+            <span>Maximum combinations to evaluate</span>
+            <input id="maxSearchCombinations" type="number" min="1" step="1" value="16000" />
+          </label>
+        </div>
+      </section>
+    </section>
+
+    <section class="panel optimize-action-panel">
+      <div>
+        <h2>Optimized timetable proposals</h2>
+        <p id="optimizationRunStatus" class="hint">Ready to search for the best timetable solutions.</p>
+      </div>
+      <button id="optimizeTimetableBtn" class="primary-button large-button">Optimize timetable</button>
+    </section>
+
+    <section id="optimizationResults" class="optimization-results"></section>
+  </main>
+
+  <aside id="sideSettingsPanel" class="side-settings-panel" hidden>
+        <section class="side-settings-section">
+          <div class="panel-heading compact">
+            <div>
+              <h2>Visible days</h2>
+              <p class="hint">Choose which days appear in the timetable.</p>
+            </div>
+          </div>
+          <div id="dayControls" class="day-controls"></div>
+        </section>
+
+        <section class="side-settings-section">
+          <div class="panel-heading compact">
+            <div>
+              <h2>Colour settings</h2>
+              <p class="hint">Click a colour to change it manually.</p>
+            </div>
+          </div>
+          <div id="colorControls" class="color-controls"></div>
+        </section>
+  </aside>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
+
+
+

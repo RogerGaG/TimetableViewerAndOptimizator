@@ -1,0 +1,8 @@
+Lista de requisitos entre asignaturas.
+
+Tipo de requisitos:
+
+Prerequisito: P
+Corequisito: C
+Precorequisito: X
+Orequisito: OREQU
